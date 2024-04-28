@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Management System</title>
+</head>
+<body>
+    <h1>Book Management System</h1>
+    <div id="books"></div>
+    <form id="addBookForm">
+        <input type="text" id="title" placeholder="Title">
+        <input type="text" id="author" placeholder="Author">
+        <input type="number" id="year" placeholder="Year">
+        <select id="status">
+            <option value="available">Available</option>
+            <option value="reserved">Reserved</option>
+        </select>
+        <button type="submit">Add Book</button>
+    </form>
+
+    <script>
+        async function fetchBooks() {
+            const response = await fetch('/api/books');
+            const books = await response.json();
+            const booksContainer = document.getElementById('books');
+            booksContainer.innerHTML = '';
+            books.forEach(book => {
+                const bookDiv = document.createElement('div');
+                bookDiv.innerHTML = `
+                    <h3>${book.title}</h3>
+                    <p>Author: ${book.author}</p>
+                    <p>Year: ${book.year}</p>
+                    <p>Status: ${book.status}</p>
+                    <button onclick="deleteBook('${book._id}')">Delete</button>
+                `;
+                booksContainer.appendChild(bookDiv);
+            });
+        }
+
+        async function addBook(event) {
+            event.preventDefault();
+            const title = document.getElementById('title').value;
+            const author = document.getElementById('author').value;
+            const year = document.getElementById('year').value;
+            const status = document.getElementById('status').value;
+
+            const response = await fetch('/api/books', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, author, year, status })
+            });
+
+            if (response.ok) {
+                fetchBooks();
+            } else {
+                alert('Failed to add book');
+            }
+        }
+
+        async function deleteBook(id) {
+            const response = await fetch(`/api/books/${id}`, { method: 'DELETE' });
+            if (response.ok) {
+                fetchBooks();
+            } else {
+                alert('Failed to delete book');
+            }
+        }
+
+        document.getElementById('addBookForm').addEventListener('submit', addBook);
+        fetchBooks();
+    </script>
+</body>
+</html>
